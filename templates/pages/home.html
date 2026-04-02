@@ -1,0 +1,18 @@
+{{ define "pages/home.html" }}
+{{ template "layouts/header.html" . }}
+
+<div class="page">
+    <div style="
+        background: white;
+        padding: 2rem 3rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        text-align: center;
+    ">
+        <h1 style="color: #333;">{{ .Title }}</h1>
+        <p style="color: #666; margin-top: 0.5rem;">{{ .Message }}</p>
+    </div>
+</div>
+
+{{ template "layouts/footer.html" . }}
+{{ end }}

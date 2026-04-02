@@ -1,0 +1,155 @@
+{{ define "pages/obfuscation_page.html" }}
+{{ template "layouts/header.html" . }}
+
+<div class="page">
+    <div style="
+        background: white;
+        padding: 2rem 3rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 480px;
+    ">
+        <h1 style="color: #333; margin-bottom: 1.5rem; font-size: 1.4rem;">JScript Stager Generator</h1>
+
+        <div style="display: flex; flex-direction: column; margin-bottom: 1.2rem;">
+            <label style="font-size: 0.85rem; font-weight: bold; color: #555; margin-bottom: 0.4rem;">Type</label>
+            <select id="typeSelect" style="
+                padding: 0.6rem 0.8rem;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                font-size: 0.95rem;
+                outline: none;
+                font-family: inherit;
+                background-color: white;
+                cursor: pointer;
+                appearance: none;
+                background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22><path fill=%22%23555%22 d=%22M6 8L1 3h10z%22/></svg>');
+                background-repeat: no-repeat;
+                background-position: right 0.8rem center;
+                padding-right: 2rem;
+            ">
+                {{ range .Types }}
+                <option value="{{ .ID }}">{{ .Label }}</option>
+                {{ end }}
+            </select>
+        </div>
+
+        <div style="display: flex; flex-direction: column; margin-bottom: 1.2rem;">
+            <label style="font-size: 0.85rem; font-weight: bold; color: #555; margin-bottom: 0.4rem;">Command</label>
+            <textarea id="command" placeholder="Enter your command..." style="
+                padding: 0.6rem 0.8rem;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                font-size: 0.95rem;
+                outline: none;
+                font-family: inherit;
+                resize: vertical;
+                min-height: 100px;
+            "></textarea>
+        </div>
+
+        <div style="display: flex; flex-direction: column; margin-bottom: 1.2rem;">
+            <label style="font-size: 0.85rem; font-weight: bold; color: #555; margin-bottom: 0.4rem;">Out Filename</label>
+            <input type="text" id="outfile" placeholder="e.g. output.js" style="
+                padding: 0.6rem 0.8rem;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                font-size: 0.95rem;
+                outline: none;
+                font-family: inherit;
+            "/>
+        </div>
+
+        <button id="submitBtn" onclick="submitCommand()" style="
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #4f8ef7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        ">Submit</button>
+
+        <div id="response" style="
+            margin-top: 1.2rem;
+            padding: 0.8rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        "></div>
+    </div>
+</div>
+
+<script>
+    async function submitCommand() {
+        const id      = parseInt(document.getElementById("typeSelect").value);
+        const command = document.getElementById("command").value.trim();
+        const outfile = document.getElementById("outfile").value.trim();
+        const btn = document.getElementById("submitBtn");
+
+        if (!command || !outfile) {
+            showResponse("Please fill in both fields.", "error");
+            return;
+        }
+
+        const payload = { 
+            id: id,
+            command: command,
+            outfile: outfile };
+
+        btn.disabled = true;
+        btn.textContent = "Submitting...";
+
+        try {
+            const res = await fetch("/obfuscation", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                showResponse("Error: " + JSON.stringify(err), "error");
+                return;
+            }
+
+            const disposition = res.headers.get("Content-Disposition");
+            let filename = outfile;
+            if (disposition) {
+                const match = disposition.match(/filename[^;=\n]*=["']?([^"'\n]*)["']?/);
+                if (match?.[1]) filename = match[1];
+            }
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+
+            showResponse("File downloaded: " + filename, "success");
+
+        } catch (err) {
+            showResponse("Request failed: " + err.message, "error");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Submit";
+        }
+    }
+
+    function showResponse(message, type) {
+        const box = document.getElementById("response");
+        box.textContent = message;
+        box.className = type;
+        box.style.display = "block";
+    }
+</script>
+
+{{ template "layouts/footer.html" . }}
+{{ end }}
