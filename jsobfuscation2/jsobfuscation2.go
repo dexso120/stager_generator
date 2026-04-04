@@ -38,8 +38,10 @@ func JsObfuscation2(command string) string {
         log.Fatal(err)
     }
 
+    escaped_command := utils.EscapePowerShellString(command)
+
     // Replacing placeholder "INSERT_CMDLINE" in template.ps1
-    newScript := strings.ReplaceAll(string(originalTemplateScript), "INSERT_CMDLINE", command)
+    newScript := strings.ReplaceAll(string(originalTemplateScript), "INSERT_CMDLINE", escaped_command)
 
     // Encode powershell into base64
     b64NewScript := utils.EncodeStringToUTF16Base64(newScript)

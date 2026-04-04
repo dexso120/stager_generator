@@ -55,3 +55,21 @@ func SliceToString(s []string) string{
 func SliceToStringOneLine(s []string) string{
     return strings.Join(s, "")
 }
+
+func EscapeJScriptString(s string) string {
+    return strings.ReplaceAll(s, `"`, `\"`)
+}
+
+func EscapePowerShellString(s string) string {
+    replacer := strings.NewReplacer(
+        "`", "``",   // backtick is the PS escape character — must be first
+        "\"", "`\"",   // double quote
+        "$", "`$",   // variable sigil — prevents unintended variable expansion
+        "`n", "``n", // literal backtick-n — prevent misinterpretation as newline
+        "`t", "``t", // literal backtick-t — prevent misinterpretation as tab
+        "\r", "`r",  // carriage return
+        "\n", "`n",  // newline
+        "\t", "`t",  // tab
+    )
+    return replacer.Replace(s)
+}

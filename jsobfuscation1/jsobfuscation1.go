@@ -34,8 +34,10 @@ func JsObfuscation1(command string) string {
         log.Fatal(err)
     }
 
+    escaped_command := utils.EscapeJScriptString(command)
+
     // Replacing placeholder "INSERT_CMDLINE"
-    newScript := strings.ReplaceAll(string(originalTemplateScript), "INSERT_CMDLINE", command)
+    newScript := strings.ReplaceAll(string(originalTemplateScript), "INSERT_CMDLINE", escaped_command)
 
     // Adding "////" to comment out final JScript
     var templateScriptSlice []string
