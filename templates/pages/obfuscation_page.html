@@ -14,7 +14,7 @@
 
         <div style="display: flex; flex-direction: column; margin-bottom: 1.2rem;">
             <label style="font-size: 0.85rem; font-weight: bold; color: #555; margin-bottom: 0.4rem;">Type</label>
-            <select id="typeSelect" style="
+            <select id="typeSelect" onchange="updateDescription()" style="
                 padding: 0.6rem 0.8rem;
                 border: 1px solid #ccc;
                 border-radius: 8px;
@@ -34,6 +34,17 @@
                 {{ end }}
             </select>
         </div>
+
+         <div id="typeDescription" style="
+            padding: 0.7rem 0.9rem;
+            background-color: #f0f6ff;
+            border-left: 3px solid #4f8ef7;
+            border-radius: 6px;
+            font-size: 0.88rem;
+            color: #444;
+            margin-bottom: 1.2rem;
+            line-height: 1.5;
+        "></div>
 
         <div style="display: flex; flex-direction: column; margin-bottom: 1.2rem;">
             <label style="font-size: 0.85rem; font-weight: bold; color: #555; margin-bottom: 0.4rem;">Command</label>
@@ -84,6 +95,22 @@
 </div>
 
 <script>
+
+    // Description map injected from Go
+    const typeDescriptions = {
+        {{ range .Types }}
+        {{ .ID }}: "{{ .Description }}",
+        {{ end }}
+    };
+
+    function updateDescription() {
+        const id  = parseInt(document.getElementById("typeSelect").value);
+        const box = document.getElementById("typeDescription");
+        box.innerHTML = typeDescriptions[id] || "";
+    }
+
+    // Set description on initial page load
+    updateDescription();
     async function submitCommand() {
         const id      = parseInt(document.getElementById("typeSelect").value);
         const command = document.getElementById("command").value.trim();
