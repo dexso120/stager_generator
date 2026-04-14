@@ -13,9 +13,8 @@ import (
 
 const (
     WORDLIST_LARGE = "./utils/word-list-large.txt"
+    letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
-
-var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 
 
@@ -151,6 +150,7 @@ var jsReserved = map[string]bool{
 
 // pickWord returns a random word from the word list that hasn't been used yet
 func pickWord(used map[string]bool, wordList []string) string {
+    rng := rand.New(rand.NewSource(time.Now().UnixNano()))
     available := []string{}
     for _, w := range wordList {
         if !used[w] {
@@ -166,6 +166,7 @@ func pickWord(used map[string]bool, wordList []string) string {
 
 func randomSuffix() string {
     const letters = "abcdefghijklmnopqrstuvwxyz"
+    rng := rand.New(rand.NewSource(time.Now().UnixNano()))
     b := make([]byte, 4)
     for i := range b {
         b[i] = letters[rng.Intn(len(letters))]
@@ -288,4 +289,60 @@ func InsertJunkStringToSlice(s []string, len int) ([]string, string){
 
 
     return result, junkString
+}
+
+func RandomString(length int) string {
+    rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+    b := make([]byte, length)
+    for i := range b {
+        b[i] = letters[rng.Intn(len(letters))]
+    }
+    return string(b)
+}
+
+var powershellSpecialVars = map[string]bool{
+    "$null":              true,
+    "$true":              true,
+    "$false":             true,
+    "$error":             true,
+    "$home":              true,
+    "$host":              true,
+    "$pid":               true,
+    "$profile":           true,
+    "$psculture":         true,
+    "$psuiculture":       true,
+    "$psversiontable":    true,
+    "$psscriptroot":      true,
+    "$pscommandpath":     true,
+    "$pwd":               true,
+    "$args":              true,
+    "$input":             true,
+    "$myinvocation":      true,
+    "$lastexitcode":      true,
+    "$stacktrace":        true,
+    "$foreach":           true,
+    "$switch":            true,
+    "$this":              true,
+    "$env":               true,
+}
+
+// Generated using Claude
+func ReplacePowershellVariables(lines []string) []string {
+    varRegex := regexp.MustCompile(`\$\{[^}]+\}|\$[a-zA-Z_][a-zA-Z0-9_]*`)
+    replacements := make(map[string]string)
+
+    result := make([]string, len(lines))
+    for i, line := range lines {
+        result[i] = varRegex.ReplaceAllStringFunc(line, func(match string) string {
+            // Normalise to lowercase for case-insensitive comparison
+            if powershellSpecialVars[strings.ToLower(match)] {
+                return match
+            }
+            if _, exists := replacements[match]; !exists {
+                replacements[match] = "$" + RandomString(8)
+            }
+            return replacements[match]
+        })
+    }
+    return result
 }

@@ -7,6 +7,17 @@ import (
     "bytes"
     "strings"
     "math/rand"
+    "os"
+    "log"
+    b64 "encoding/base64"
+    "regexp"
+    _ "archive/zip"
+    _ "io"
+
+)
+
+const (
+    TEMP_OUTPUT_DIRECTORY = "./temp_outfile"
 )
 
 //var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -72,4 +83,87 @@ func EscapePowerShellString(s string) string {
         "\t", "`t",  // tab
     )
     return replacer.Replace(s)
+}
+
+// Returns b64 encoded content
+func Base64EncodeFile(filepath string) string{
+    originalContent, err := os.ReadFile(filepath)
+    if err != nil{
+        log.Fatal(err)
+    }
+
+    return b64.StdEncoding.EncodeToString(originalContent)
+}
+
+func RemovePowershellComments(lines []string) []string {
+    // Matches single-line comments (#) and block comments (<# ... #>)
+    singleLineComment := regexp.MustCompile(`(?i)^\s*#.*$`)
+    inlineComment     := regexp.MustCompile(`(?i)\s*#[^"']*$`)
+    blockCommentStart := regexp.MustCompile(`(?i)<#`)
+    blockCommentEnd   := regexp.MustCompile(`(?i)#>`)
+
+    result := []string{}
+    inBlockComment := false
+
+    for _, line := range lines {
+        // Handle block comment start/end
+        if blockCommentStart.MatchString(line) {
+            inBlockComment = true
+        }
+        if inBlockComment {
+            if blockCommentEnd.MatchString(line) {
+                inBlockComment = false
+            }
+            continue
+        }
+
+        // Skip full-line comments
+        if singleLineComment.MatchString(line) {
+            continue
+        }
+
+        // Strip inline comments
+        line = inlineComment.ReplaceAllString(line, "")
+
+        if line != "" {
+            result = append(result, line)
+        }
+    }
+    return result
+}
+
+func RemoveJavascriptComments(lines []string) []string {
+    singleLineComment := regexp.MustCompile(`^\s*//.*$`)
+    inlineComment     := regexp.MustCompile(`\s*//.*$`)
+    blockCommentStart := regexp.MustCompile(`/\*`)
+    blockCommentEnd   := regexp.MustCompile(`\*/`)
+
+    result := []string{}
+    inBlockComment := false
+
+    for _, line := range lines {
+        // Handle block comment start/end
+        if blockCommentStart.MatchString(line) {
+            inBlockComment = true
+        }
+        if inBlockComment {
+            if blockCommentEnd.MatchString(line) {
+                inBlockComment = false
+            }
+            continue
+        }
+
+        // Skip full-line comments
+        if singleLineComment.MatchString(line) {
+            continue
+        }
+
+        // Strip inline comments
+        line = inlineComment.ReplaceAllString(line, "")
+
+        if line != "" {
+            result = append(result, line)
+        }
+    }
+    return result
 }
