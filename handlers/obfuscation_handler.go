@@ -10,9 +10,9 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"stager_generator/utils"
-	"stager_generator/jsobfuscation1"
-	"stager_generator/jsobfuscation2"
-	"stager_generator/psobfuscation1"
+	jsobfuscation1 "stager_generator/obfuscation/jsobfuscation1"
+	jsobfuscation2 "stager_generator/obfuscation/jsobfuscation2"
+	psobfuscation1 "stager_generator/obfuscation/psobfuscation1"
 )
 
 const (
@@ -28,7 +28,7 @@ type Action struct {
 func CallJScriptObfuscation(c *gin.Context){
 	// Clean up previous output files
 	utils.CleanUpOutfiles()
-	
+
 	var d Action
 	if err := c.BindJSON(&d); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})

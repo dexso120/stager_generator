@@ -1,4 +1,4 @@
-package psobfuscation1
+package obfuscation
 
 import (
     "fmt"
@@ -11,7 +11,7 @@ import (
 )
 
 const (
-    TEMPLATE_PATH = "./psobfuscation1"
+    TEMPLATE_PATH = "./obfuscation/psobfuscation1"
     //TEMPLATE_PS_FILE = filepath.Join(TEMPLATE_PATH, "/loader.ps1")
     //LOADER_JS_FILE = TEMPLATE_PATH + "/loader.js"
     TEMP_OUTPUT_DIRECTORY = "./temp_outfile"

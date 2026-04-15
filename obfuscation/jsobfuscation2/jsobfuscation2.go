@@ -1,4 +1,4 @@
-package jsobfuscation2
+package obfuscation
 
 import (
     "fmt"
@@ -10,7 +10,7 @@ import (
 )
 
 const (
-    TEMPLATE_PATH = "./jsobfuscation2"
+    TEMPLATE_PATH = "./obfuscation/jsobfuscation2"
     TEMPLATE_JS_FILE = TEMPLATE_PATH + "/template.ps1"
     LOADER_JS_FILE = TEMPLATE_PATH + "/loader.js"
 )
