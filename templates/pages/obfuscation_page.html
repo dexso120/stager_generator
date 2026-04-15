@@ -131,7 +131,7 @@
         btn.textContent = "Submitting...";
 
         try {
-            const res = await fetch("/obfuscation", {
+            const res = await fetch("/jscript_obfuscation", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)

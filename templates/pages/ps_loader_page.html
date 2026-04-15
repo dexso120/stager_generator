@@ -1,0 +1,237 @@
+{{ define "pages/ps_loader_page.html" }}
+{{ template "layouts/header.html" . }}
+
+<div class="page">
+    <div style="
+        background: white;
+        padding: 2rem 3rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 480px;
+    ">
+        <h1 style="color: #333; margin-bottom: 1.5rem; font-size: 1.4rem;">Loader</h1>
+
+        <div style="display: flex; flex-direction: column; margin-bottom: 1.2rem;">
+            <label style="font-size: 0.85rem; font-weight: bold; color: #555; margin-bottom: 0.4rem;">Type</label>
+            <select id="typeSelect" style="
+                padding: 0.6rem 0.8rem;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                font-size: 0.95rem;
+                outline: none;
+                font-family: inherit;
+                background-color: white;
+                cursor: pointer;
+                appearance: none;
+                background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22><path fill=%22%23555%22 d=%22M6 8L1 3h10z%22/></svg>');
+                background-repeat: no-repeat;
+                background-position: right 0.8rem center;
+                padding-right: 2rem;
+            ">
+                {{ range .Types }}
+                <option value="{{ .ID }}">{{ .Label }}</option>
+                {{ end }}
+            </select>
+        </div>
+
+        <div id="typeDescription" style="
+            padding: 0.7rem 0.9rem;
+            background-color: #f0f6ff;
+            border-left: 3px solid #4f8ef7;
+            border-radius: 6px;
+            font-size: 0.88rem;
+            color: #444;
+            margin-bottom: 1.2rem;
+            line-height: 1.5;
+        "></div>
+
+        <div id="dynamicFields"></div>
+
+        <button id="submitBtn" onclick="submitLoader()" style="
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #4f8ef7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        ">Submit</button>
+
+        <div id="response" style="
+            margin-top: 1.2rem;
+            padding: 0.8rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        "></div>
+    </div>
+</div>
+
+<script>
+    // Type config injected from Go at render time
+    const loaderTypes = {
+        {{ range .Types }}
+        {{ .ID }}: {
+            description: `{{ .Description }}`,
+            fields: [
+                {{ range .Fields }}
+                { id: "{{ .ID }}", label: "{{ .Label }}", type: "{{ .Type }}", placeholder: "{{ .Placeholder }}", optional: {{ .Optional }} },
+                {{ end }}
+            ]
+        },
+        {{ end }}
+    };
+
+    function updateType() {
+        const id     = parseInt(document.getElementById("typeSelect").value);
+        const config = loaderTypes[id];
+
+        // Update description
+        document.getElementById("typeDescription").innerHTML = config.description || "";
+
+        // Rebuild dynamic fields
+        const container = document.getElementById("dynamicFields");
+        container.innerHTML = "";
+
+        config.fields.forEach(function(field) {
+            const wrapper = document.createElement("div");
+            wrapper.style.cssText = "display:flex; flex-direction:column; margin-bottom:1.2rem;";
+
+            const label = document.createElement("label");
+            label.textContent = field.label;
+            label.setAttribute("for", field.id);
+            label.style.cssText = "font-size:0.85rem; font-weight:bold; color:#555; margin-bottom:0.4rem;";
+
+            wrapper.appendChild(label);
+
+            if (field.type === "file") {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.id   = field.id;
+                input.style.cssText = `
+                    padding: 0.4rem 0;
+                    font-size: 0.95rem;
+                    font-family: inherit;
+                    color: #555;
+                    cursor: pointer;
+                `;
+                wrapper.appendChild(input);
+
+            } else {
+                const input = document.createElement("input");
+                input.type        = "text";
+                input.id          = field.id;
+                input.placeholder = field.placeholder || "";
+                input.style.cssText = `
+                    padding: 0.6rem 0.8rem;
+                    border: 1px solid #ccc;
+                    border-radius: 8px;
+                    font-size: 0.95rem;
+                    outline: none;
+                    font-family: inherit;
+                `;
+                wrapper.appendChild(input);
+            }
+
+            container.appendChild(wrapper);
+        });
+    }
+
+    async function submitLoader() {
+        const id     = parseInt(document.getElementById("typeSelect").value);
+        const config = loaderTypes[id];
+        const btn    = document.getElementById("submitBtn");
+
+        // Collect field values — use FormData to support file uploads
+        const formData = new FormData();
+        formData.append("id", id);
+
+        let valid = true;
+        config.fields.forEach(function(field) {
+            const el = document.getElementById(field.id);
+            if (!el) return;
+
+            if (field.type === "file") {
+                if (el.files.length === 0) {
+                    showResponse("Please select a file for: " + field.label, "error");
+                    valid = false;
+                    return;
+                }
+                formData.append(field.id, el.files[0]);
+            } else if (field.optional){
+                formData.append(field.id, el.value.trim());
+            }else {
+                if (!el.value.trim()) {
+                    showResponse("Please fill in: " + field.label, "error");
+                    valid = false;
+                    return;
+                }
+                formData.append(field.id, el.value.trim());
+            }
+        });
+
+        if (!valid) return;
+
+        btn.disabled = true;
+        btn.style.backgroundColor = "#aaa";
+        btn.textContent = "Submitting...";
+
+        try {
+            const res = await fetch("/powershell_obfuscation", {
+                method: "POST",
+                body: formData   // FormData sets Content-Type multipart/form-data automatically
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                showResponse("Error: " + JSON.stringify(err), "error");
+                return;
+            }
+
+            const disposition = res.headers.get("Content-Disposition");
+            let filename = "output";
+            if (disposition) {
+                const match = disposition.match(/filename[^;=\n]*=["']?([^"'\n]*)["']?/);
+                if (match?.[1]) filename = match[1];
+            }
+
+            const blob = await res.blob();
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement("a");
+            a.href     = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+
+            showResponse("File downloaded: " + filename, "success");
+
+        } catch (err) {
+            showResponse("Request failed: " + err.message, "error");
+        } finally {
+            btn.disabled = false;
+            btn.style.backgroundColor = "#4f8ef7";
+            btn.textContent = "Submit";
+        }
+    }
+
+    function showResponse(message, type) {
+        const box = document.getElementById("response");
+        box.textContent = message;
+        box.style.display = "block";
+        box.style.backgroundColor = type === "success" ? "#e6f4ea" : "#fdecea";
+        box.style.color = type === "success" ? "#2d6a4f" : "#a61c00";
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById("typeSelect").addEventListener("change", updateType);
+        updateType();
+    });
+</script>
+
+{{ template "layouts/footer.html" . }}
+{{ end }}
