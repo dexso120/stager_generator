@@ -12,6 +12,7 @@ import (
 )
 
 const (
+    WORDLIST_DIRECTORY = "./wordlist"
     WORDLIST_LARGE = "./utils/word-list-large.txt"
     letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )

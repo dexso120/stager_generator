@@ -1,4 +1,4 @@
-package obfuscation
+package psobfuscation1
 
 import (
     "fmt"

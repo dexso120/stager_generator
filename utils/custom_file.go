@@ -83,3 +83,17 @@ func CleanUpOutfiles() error {
 
     return nil
 }
+
+func EnsureDir(path string) error {
+    _, err := os.Stat(path)
+    if os.IsNotExist(err) {
+        if err := os.MkdirAll(path, 0755); err != nil {
+            return fmt.Errorf("failed to create directory %s: %w", path, err)
+        }
+        return nil
+    }
+    if err != nil {
+        return fmt.Errorf("failed to check directory %s: %w", path, err)
+    }
+    return nil
+}

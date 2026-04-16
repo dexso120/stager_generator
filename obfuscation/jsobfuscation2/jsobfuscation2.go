@@ -1,4 +1,4 @@
-package obfuscation
+package jsobfuscation2
 
 import (
     "fmt"
