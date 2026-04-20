@@ -19,6 +19,8 @@ const (
     TEMP_OUTPUT_DIRECTORY = "./temp_outfile"
 )
 /*
+Sample Reference:
+https://bazaar.abuse.ch/sample/7577ae95e892eda34e00304308715c65a197216854a85cecfbfd402a3a8964e0/
 
 Description:
 - Obfuscates the string Wscript.Shell using a random sentence (based on a bible wordlist)
@@ -74,7 +76,7 @@ func GenerateObfuscatedSentence() (string, string){
 func VbsObfuscateCommand(command string) string{
     var resultString string = ""
 
-    for _, c := range command {
+    for i, c := range command {
         originalInt := int(c)
 
         // Breaking up the integer into 5 integer
@@ -105,6 +107,10 @@ func VbsObfuscateCommand(command string) string{
         fmt.Println(obfString)
 
         resultString += obfString
+
+        if i < len(command) - 1{
+            resultString += "& "
+        }
     }
 
     return resultString
