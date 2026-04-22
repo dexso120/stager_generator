@@ -13,6 +13,7 @@ import (
 	jsobfuscation1 "stager_generator/obfuscation/jsobfuscation1"
 	jsobfuscation2 "stager_generator/obfuscation/jsobfuscation2"
 	psobfuscation1 "stager_generator/obfuscation/psobfuscation1"
+	vbsobfuscation2 "stager_generator/obfuscation/vbsobfuscation2"
 )
 
 const (
@@ -93,7 +94,6 @@ func CallPowershellObfuscation(c *gin.Context){
     }
 
     // Calling Powershell Obfuscation Function
-    fmt.Println("Test local file path", parsed["localFilepath"])
     var obfuscationResultString string
 
     // Assert form data types
@@ -123,6 +123,89 @@ func CallPowershellObfuscation(c *gin.Context){
 	*/
 
 	loaderOutfilePath := filepath.Join(OUTFILE_PATH, "/script.ps1")
+
+	err := os.WriteFile(loaderOutfilePath, []byte(obfuscationResultString), 0644)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Result loader written to file:", loaderOutfilePath)
+
+	// Zipping the loader script and the encoded .NET executable
+	zipFilePath := filepath.Join(OUTFILE_PATH, "/output.zip")
+
+	utils.Zipfiles(zipFilePath, loaderOutfilePath, tempDotnetFilepath)
+
+	utils.CleanUpTempOutfiles()
+
+	// Returning output file as attachment
+	c.FileAttachment(zipFilePath, "output.zip")
+}
+
+func CallVbsObfuscation(c *gin.Context){
+
+	// Clean up previous output files
+	utils.CleanUpOutfiles()
+
+	// Input fields based on chosen obfuscation type
+	// TODO: add ID field
+	textFields  := []string{"url_64", "url_32", "getType", "getMethod", "args"}
+    fileFields  := []string{"uploadFile", "payloadFile"}
+
+    parsed := gin.H{}
+
+    // Collect all text fields that were submitted
+    for _, field := range textFields {
+        if val := c.PostForm(field); val != "" {
+            parsed[field] = val
+        }
+    }
+
+    // Collect all file fields that were submitted
+    for _, field := range fileFields {
+        file, err := c.FormFile(field)
+        if err == nil && file != nil {
+            dst := filepath.Join("./temp_outfile", file.Filename)
+            if err := c.SaveUploadedFile(file, dst); err != nil {
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save " + field})
+                return
+            }
+            //parsed[field] = file.Filename
+            parsed[field] = dst
+        }
+    }
+
+    // Calling VBS Obfuscation Function
+    var obfuscationResultString string
+
+    // Assert form data types
+    uploadDotnetFilePath := parsed["uploadFile"].(string)
+    url_64 := parsed["url_64"].(string)
+    url_32 := parsed["url_32"].(string)
+    getType := parsed["getType"].(string)
+    getMethod := parsed["getMethod"].(string)
+
+    var args string
+    if parsed["args"] != nil{
+    	args = parsed["args"].(string)
+    }else{
+    	args = ""
+    }
+
+    obfuscationResultString, tempDotnetFilepath := vbsobfuscation2.VbsObfuscation2(uploadDotnetFilePath, url_64, url_32, getType, getMethod, args)
+
+    /*
+
+	switch d.Id {
+	case 1:
+		obfuscationResultString = psobfuscation1.PsObfuscation1(parsed["uploadDotnetFile"], parsed["localFilepath"], parsed["url"], parsed["getType"], parsed["getMethod"])
+	default:
+		obfuscationResultString = psobfuscation1.PsObfuscation1(parsed["uploadDotnetFile"], parsed["localFilepath"], parsed["url"], parsed["getType"], parsed["getMethod"])
+	}
+	*/
+
+	loaderOutfilePath := filepath.Join(OUTFILE_PATH, "/script.vbs")
 
 	err := os.WriteFile(loaderOutfilePath, []byte(obfuscationResultString), 0644)
 

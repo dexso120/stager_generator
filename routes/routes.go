@@ -29,6 +29,8 @@ func Register(r *gin.Engine) {
 
 	r.GET("/ps_loader_page", handlers.GetPsLoaderPage)
 
+	r.GET("/vbs_loader_page", handlers.GetVbsLoaderPage)
+
 	r.GET("/other_techniques", handlers.GetTechniquePage)
 
 	// GUI Pages End //
@@ -39,6 +41,8 @@ func Register(r *gin.Engine) {
 	r.POST("/jscript_obfuscation", handlers.CallJScriptObfuscation)
 
 	r.POST("/powershell_obfuscation", handlers.CallPowershellObfuscation)
+
+	r.POST("/vbs_obfuscation", handlers.CallVbsObfuscation)	
 
 	// Backend API Endpoints End //
 

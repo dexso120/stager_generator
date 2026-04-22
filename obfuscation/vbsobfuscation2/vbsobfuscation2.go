@@ -28,7 +28,7 @@ Description:
 - 
 */
 
-func VbsObfuscation2(dotnetFilepath string, url64 string, url32 string, getType string, getMethod string, args string) string{
+func VbsObfuscation2(dotnetFilepath string, url64 string, url32 string, getType string, getMethod string, args string) (string, string){
 
     fmt.Println("[*] Starting Powershell Obfuscation 1.")
 
@@ -127,7 +127,7 @@ func VbsObfuscation2(dotnetFilepath string, url64 string, url32 string, getType 
     var obfuscatedScript string
     obfuscatedScript = originalVbsTemplate
 
-    return obfuscatedScript
+    return obfuscatedScript, tempDst
 }
 
 func insertRandomComments(script []string) []string {

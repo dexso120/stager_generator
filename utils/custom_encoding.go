@@ -95,6 +95,10 @@ func Base64EncodeFile(filepath string) string{
     return b64.StdEncoding.EncodeToString(originalContent)
 }
 
+func Base64EncodeString(s string) string{
+    return b64.StdEncoding.EncodeToString([]byte(s))
+}
+
 func RemovePowershellComments(lines []string) []string {
     // Matches single-line comments (#) and block comments (<# ... #>)
     singleLineComment := regexp.MustCompile(`(?i)^\s*#.*$`)

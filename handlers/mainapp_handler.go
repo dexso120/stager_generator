@@ -66,7 +66,8 @@ func GetObfuscationPage(c *gin.Context){
 				ID: 2,
 				Label: "JScript Obfuscation 2",
 				Description: `Sample Reference:<br>
-				<a href="https://www.swisspost-cybersecurity.ch/news/purelogs-infostealer-analysis-dont-judge-a-png-by-its-header">https://www.swisspost-cybersecurity.ch/news/purelogs-infostealer-analysis-dont-judge-a-png-by-its-header</a><br><br>
+				<a href="https://www.swisspost-cybersecurity.ch/news/purelogs-infostealer-analysis-dont-judge-a-png-by-its-header">https://www.swisspost-cybersecurity.ch/news/purelogs-infostealer-analysis-dont-judge-a-png-by-its-header</a><br>
+				<br>
 
 				Description:<br>
 				- Inserts command into "template.ps1" powershell file<br>
@@ -89,7 +90,8 @@ func GetPsLoaderPage(c *gin.Context){
 	            ID:          1,
 	            Label:       "Powershell Loader 1",
 	            Description: `Sample Reference:<br>
-	            <a href="https://bazaar.abuse.ch/sample/a755759a2efb1f49d639af3f8166cb334e7fd537c3baf454e561f7ad6d07838f/">https://bazaar.abuse.ch/sample/a755759a2efb1f49d639af3f8166cb334e7fd537c3baf454e561f7ad6d07838f/</a><br>
+	            <a href="https://bazaar.abuse.ch/sample/a755759a2efb1f49d639af3f8166cb334e7fd537c3baf454e561f7ad6d07838f/">Malware Bazaar Sample</a><br>
+	            <br>
 
 	            Loader Description:<br>
 	            - Downloads a base64 encoded and modified .NET executable to the local system<br>
@@ -100,6 +102,61 @@ func GetPsLoaderPage(c *gin.Context){
 	            Fields: []Field{
 	            	{ID: "url", Label: "URL where the encoded .NET file will be hosted", Type: FieldText, Placeholder: "e.g. http://localhost/payload.txt", Optional: false},
 	                {ID: "localFilepath", Label: "Windows Local File Path to encoded .NET file", Type: FieldText, Placeholder: "e.g. C:\\Windows\\Temp\\output.txt", Optional: false},
+	                {ID: "uploadFile", Label: "Upload File", Type: FieldFile},
+	                {ID: "getType", Label: "GetType", Type: FieldText, Placeholder: "e.g. ClassLibrary3.Class1", Optional: false},
+	                {ID: "getMethod", Label: "GetMethod", Type: FieldText, Placeholder: "e.g. MethodA", Optional: false},
+	                // TODO: add support for passing arguments into .NET static method
+	                //{ID: "args", Label: "Arguments (blank if none)", Type: FieldText, Placeholder: "e.g. 'arg1', 'arg2'", Optional: true},
+	            },
+	        },
+	        /*
+	        {
+	            ID:          2,
+	            Label:       "Option 2",
+	            Description: "Provide a <strong>source path</strong> and a <strong>destination path</strong>.",
+	            Fields: []Field{
+	                {ID: "sourcePath",      Label: "Source Path",      Type: FieldText, Placeholder: "e.g. C:\\source\\file.txt"},
+	                {ID: "destinationPath", Label: "Destination Path", Type: FieldText, Placeholder: "e.g. C:\\dest\\file.txt"},
+	            },
+	        },
+	        {
+	            ID:          3,
+	            Label:       "Option 3",
+	            Description: "Provide a <strong>host</strong>, <strong>port</strong>, and select a <strong>payload file</strong>.",
+	            Fields: []Field{
+	                {ID: "host",        Label: "Host",         Type: FieldText, Placeholder: "e.g. 192.168.1.1"},
+	                {ID: "port",        Label: "Port",         Type: FieldText, Placeholder: "e.g. 8080"},
+	                {ID: "payloadFile", Label: "Payload File", Type: FieldFile},
+	            },
+	        },
+	        */
+	    },
+	})
+}
+
+func GetVbsLoaderPage(c *gin.Context){
+	c.HTML(http.StatusOK, "pages/vbs_loader_page.html", gin.H{
+		"Active": "vbs_loader_page",
+		"Title": "VBS Loader",
+		"Types": []LoaderType{
+	        {
+	            ID:          1,
+	            Label:       "VBS Loader 1",
+	            Description: `Sample Reference:<br>
+	            <a href="https://www.securonix.com/blog/shadowreactor-text-only-staging-net-reactor-and-in-memory-remcos-rat-deployment/">https://www.securonix.com/blog/shadowreactor-text-only-staging-net-reactor-and-in-memory-remcos-rat-deployment/</a><br>
+				<a href="https://bazaar.abuse.ch/sample/90d552da574192494b4280a1ee733f0c8238f5e07e80b31f4b8e028ba88ee7ea/">Malware Bazaar Sample</a><br>
+				<br>
+
+	            Loader Description:<br>
+	            - Decodes obfuscated base64 powershell command and runs it.<br>
+	            - Downloads a base64 encoded and modified .NET executable to the local system.<br>
+	            - Decodes the .NET executable.<br>
+	            - Creates a second powershell loader script in C:\ProgramData.<br>
+	            - The second loader will invoke a static method in the .NET executable.<br>
+	            `,
+	            Fields: []Field{
+	            	{ID: "url_64", Label: "URL where the encoded .NET file (64-bit) will be hosted", Type: FieldText, Placeholder: "e.g. http://localhost/payload_64.txt", Optional: false},
+	                {ID: "url_32", Label: "URL where the encoded .NET file (32-bit) will be hosted", Type: FieldText, Placeholder: "e.g. http://localhost/payload_32.txt", Optional: false},
 	                {ID: "uploadFile", Label: "Upload File", Type: FieldFile},
 	                {ID: "getType", Label: "GetType", Type: FieldText, Placeholder: "e.g. ClassLibrary3.Class1", Optional: false},
 	                {ID: "getMethod", Label: "GetMethod", Type: FieldText, Placeholder: "e.g. MethodA", Optional: false},

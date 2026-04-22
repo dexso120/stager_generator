@@ -347,3 +347,58 @@ func ReplacePowershellVariables(lines []string) []string {
     }
     return result
 }
+
+func ReplaceVBScriptVariables(lines []string) []string {
+    // Match Dim declarations: Dim x, y, z
+    dimRe := regexp.MustCompile(`(?i)\bDim\s+([\w\s,]+)`)
+    // Match individual variable names
+    varNameRe := regexp.MustCompile(`\b[a-zA-Z_]\w*\b`)
+
+    varMap := make(map[string]string)
+
+    // First pass: collect all Dim-declared variables
+    for _, line := range lines {
+        matches := dimRe.FindStringSubmatch(line)
+        if matches != nil {
+            // matches[1] is the variable list e.g. "x, y, z"
+            for _, v := range strings.Split(matches[1], ",") {
+                name := strings.TrimSpace(v)
+                if name != "" {
+                    if _, exists := varMap[name]; !exists {
+                        varMap[strings.ToLower(name)] = RandomString(8)
+                    }
+                }
+            }
+        }
+    }
+
+    // Reserved VBScript keywords to never rename
+    reserved := map[string]bool{
+        "dim": true, "if": true, "then": true, "else": true, "end": true,
+        "for": true, "next": true, "do": true, "loop": true, "while": true,
+        "wend": true, "sub": true, "function": true, "call": true,
+        "set": true, "new": true, "nothing": true,
+        "true": true, "false": true, "not": true, "and": true, "or": true,
+        "mod": true, "exit": true, "select": true, "case": true,
+        "const": true, "private": true, "public": true, "class": true,
+        "with": true, "each": true, "in": true, "is": true, "on": true,
+        "error": true, "resume": true, "goto": true, "return": true,
+    }
+
+    // Second pass: replace all occurrences of declared variables
+    result := make([]string, len(lines))
+    for i, line := range lines {
+        result[i] = varNameRe.ReplaceAllStringFunc(line, func(word string) string {
+            lower := strings.ToLower(word)
+            if reserved[lower] {
+                return word
+            }
+            if replacement, ok := varMap[lower]; ok {
+                return replacement
+            }
+            return word
+        })
+    }
+
+    return result
+}
