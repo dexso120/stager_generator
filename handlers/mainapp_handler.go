@@ -131,3 +131,7 @@ func GetPsLoaderPage(c *gin.Context){
 	    },
 	})
 }
+
+func GetTechniquePage(c *gin.Context){
+	c.HTML(http.StatusOK, "pages/other_techniques.html", nil)
+}

@@ -29,6 +29,8 @@ func Register(r *gin.Engine) {
 
 	r.GET("/ps_loader_page", handlers.GetPsLoaderPage)
 
+	r.GET("/other_techniques", handlers.GetTechniquePage)
+
 	// GUI Pages End //
 
 	// Backend API Endpoints //
