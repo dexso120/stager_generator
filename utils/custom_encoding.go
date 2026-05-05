@@ -68,7 +68,11 @@ func SliceToStringOneLine(s []string) string{
 }
 
 func EscapeJScriptString(s string) string {
-    return strings.ReplaceAll(s, `"`, `\"`)
+    replacer := strings.NewReplacer(
+        "\"", "\\\"",   // double quote
+        "\\", "\\\\",   // back slash
+    )
+    return replacer.Replace(s)
 }
 
 func EscapePowerShellString(s string) string {
